@@ -1,0 +1,27 @@
+# 1. Environnements virtuels et variables
+env/
+venv/
+.env
+
+# 2. Fichiers systèmes Mac (spécifique au Finder)
+.DS_Store
+
+# 3. Cache Python (Fichiers compilés automatiquement)
+__pycache__/
+*.pyc
+
+# 4. Jeux de données (ShanghaiTech)
+data/
+*.mat
+*.jpg
+*.png
+
+# 5. Cartes de densité générées
+*.h5
+*.npy
+
+# 6. Poids des modèles d'IA (Très lourds)
+models/*.pth
+models/*.onnx
+*.pth
+*.onnx
