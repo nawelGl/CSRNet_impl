@@ -68,12 +68,20 @@ def process_dataset(root_path):
             img_path_pattern = os.path.join(folder_path, 'images', '*.jpg')
             
             img_paths = glob.glob(img_path_pattern)
-            print(f"Traitement de {len(img_paths)} images dans {part}/{split}...")
+            if len(img_paths) == 0:
+                print(f"⚠️ Attention : Aucune image trouvée dans {folder_path}/images/")
+                continue
+                
+            print(f"\n---> Démarrage du traitement : {len(img_paths)} images dans {part}/{split}")
 
-            for img_path in img_paths:
+            for i, img_path in enumerate(img_paths):
+                nom_image = os.path.basename(img_path)
+                print(f"[{i+1}/{len(img_paths)}] Traitement de {nom_image}...", end='', flush=True)
+
                 # 1. Lecture des dimensions de l'image
                 img = cv2.imread(img_path)
                 if img is None:
+                    print(" ERREUR LECTURE IMAGE")
                     continue
                 img_shape = (img.shape[0], img.shape[1])
 
@@ -82,8 +90,12 @@ def process_dataset(root_path):
                 mat_path = img_path.replace('images', 'ground_truth').replace('.jpg', '.mat').replace('IMG_', 'GT_IMG_')
                 
                 # 3. Extraction des coordonnées
-                mat = io.loadmat(mat_path)
-                points = mat['image_info'][0, 0][0, 0][0]
+                try:
+                    mat = io.loadmat(mat_path)
+                    points = mat['image_info'][0, 0][0, 0][0]
+                except Exception as e:
+                    print(f" ERREUR LECTURE .MAT ({e})")
+                    continue
 
                 # 4. Application du filtre selon la partie du dataset
                 if part == 'part_A_final':
@@ -101,6 +113,8 @@ def process_dataset(root_path):
                 h5_path = img_path.replace('.jpg', '.h5')
                 with h5py.File(h5_path, 'w') as hf:
                     hf['density'] = density_map
+                
+                print(" OK")
 
 if __name__ == '__main__':
     # Résolution automatique du chemin : on part du script, on remonte (..), on va dans data/ShanghaiTech_Dataset
