@@ -21,7 +21,8 @@ def resume_training_auto(epochs_to_add=5):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     dataset_root = os.path.join(current_dir, 'data', 'ShanghaiTech_Dataset')
     
-    train_dataset = ShanghaiTechDataset(root_path=dataset_root, part='part_A_final', split='train_data')
+    # on s'entraine mtn sur la part B pour des foules moins denses (good pour CCTV)
+    train_dataset = ShanghaiTechDataset(root_path=dataset_root, part='part_B_final', split='train_data')
     train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
 
     # --- 3. INITIALISATION ET RECHERCHE AUTOMATIQUE ---
