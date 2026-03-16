@@ -1,11 +1,13 @@
 import os
+import glob
+import re
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from model import CSRNet
 from dataset import ShanghaiTechDataset
 
-def resume_training():
+def resume_training_auto(epochs_to_add=5):
     # --- 1. CONFIGURATION MATÉRIELLE ---
     if torch.backends.mps.is_available():
         device = torch.device("mps")
@@ -22,26 +24,31 @@ def resume_training():
     train_dataset = ShanghaiTechDataset(root_path=dataset_root, part='part_A_final', split='train_data')
     train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
 
-    # --- 3. INITIALISATION ET REPRISE (Le cœur du script) ---
+    # --- 3. INITIALISATION ET RECHERCHE AUTOMATIQUE ---
     model = CSRNet().to(device)
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
 
-    # C'est ici qu'on charge le cerveau de l'époque 5
-    checkpoint_path = 'models/csrnet_epoch_5.pth'
-    if os.path.exists(checkpoint_path):
-        # On injecte les poids sauvegardés dans notre modèle vierge
-        model.load_state_dict(torch.load(checkpoint_path, map_location=device))
-        print(f"🔄 Reprise réussie : Cerveau chargé depuis {checkpoint_path}")
-    else:
-        print(f"❌ Erreur : Fichier {checkpoint_path} introuvable. As-tu bien fini tes 5 premières époques ?")
+    # Recherche de tous les fichiers .pth dans le dossier
+    fichiers_modeles = glob.glob('models/csrnet_epoch_*.pth')
+    
+    if not fichiers_modeles:
+        print("❌ Aucun modèle trouvé dans le dossier 'models/'. Utilise d'abord train.py pour démarrer de zéro.")
         return
 
-    # --- 4. LA BOUCLE D'APPRENTISSAGE (Époques 6 à 10) ---
-    start_epoch = 6
-    end_epoch = 10
+    # SOLUTION OPTIMALE : Extraction du plus grand numéro via Expression Régulière (Regex)
+    dernier_modele = max(fichiers_modeles, key=lambda f: int(re.search(r'epoch_(\d+)', f).group(1)))
+    derniere_epoque = int(re.search(r'epoch_(\d+)', dernier_modele).group(1))
     
-    print(f"\n🧠 Reprise de l'entraînement pour les époques {start_epoch} à {end_epoch}...")
+    # Chargement des poids
+    model.load_state_dict(torch.load(dernier_modele, map_location=device))
+    print(f"🔄 Reprise automatique : Cerveau de l'époque {derniere_epoque} chargé depuis {dernier_modele}")
+
+    # --- 4. LA BOUCLE D'APPRENTISSAGE DYNAMIQUE ---
+    start_epoch = derniere_epoque + 1
+    end_epoch = derniere_epoque + epochs_to_add
+    
+    print(f"\n🧠 Lancement de l'entraînement pour les époques {start_epoch} à {end_epoch}...")
     
     for epoch in range(start_epoch, end_epoch + 1):
         model.train()
@@ -70,4 +77,5 @@ def resume_training():
         print(f"✅ Époque {epoch} terminée ! Erreur moyenne : {avg_loss:.6f} | Sauvegardé dans {save_path}\n")
 
 if __name__ == '__main__':
-    resume_training()
+    # Tu peux changer le 5 ici si tu veux faire tourner 10 ou 20 époques d'un coup !
+    resume_training_auto(epochs_to_add=5)
