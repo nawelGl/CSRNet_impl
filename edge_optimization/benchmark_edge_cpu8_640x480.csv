@@ -1,0 +1,4 @@
+# Contraintes: CPU=8.0 cores
+name,mae,rmse,avg_ms,p50_ms,p95_ms,fps,peak_mem_mb
+ONNX FP32 [640x480],13.11,24.18,1744.61,1705.88,1961.78,0.57,424768.00
+ONNX INT8 [640x480],13.06,24.15,494.45,484.46,581.50,2.02,424768.00

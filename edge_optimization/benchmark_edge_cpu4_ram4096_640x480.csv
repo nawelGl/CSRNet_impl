@@ -1,0 +1,4 @@
+# Contraintes: CPU=4.0 cores, RAM=4096MB
+name,mae,rmse,avg_ms,p50_ms,p95_ms,fps,peak_mem_mb
+ONNX FP32 [640x480],13.13,24.22,7977.65,7978.01,8062.68,0.13,495.96
+ONNX INT8 [640x480],13.10,24.18,582.92,578.18,618.25,1.72,495.96

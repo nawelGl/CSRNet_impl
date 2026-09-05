@@ -1,0 +1,4 @@
+name,mae,rmse,avg_ms,fps
+PyTorch FP32 (CPU),9.11,15.94,3501.3,0.3
+ONNX FP32,9.11,15.94,4053.8,0.2
+ONNX INT8 (Static),9.20,16.02,1129.7,0.9

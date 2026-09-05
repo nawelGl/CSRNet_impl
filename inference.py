@@ -13,21 +13,31 @@ from model import CSRNet
 def test_random_image(dataset_part='part_B_final'):
     # --- 1. CONFIGURATION MATÉRIELLE ---
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-    print(f"🖥️ Exécution sur : {device}")
+    print(f" Exécution sur : {device}")
 
-    # --- 2. RECHERCHE AUTOMATIQUE DU MEILLEUR MODÈLE ---
+    # --- 2. CHARGEMENT DU MODÈLE (Priorité au 'best') ---
     model = CSRNet().to(device)
-    fichiers_modeles = glob.glob('models/csrnet_epoch_*.pth')
+    chemin_best = 'models/csrnet_best.pth'
+    #chemin_best = 'models/csrnet_epoch_1.pth'
     
-    if not fichiers_modeles:
-        print("❌ Aucun modèle trouvé dans le dossier 'models/'.")
-        return
+    # SOLUTION OPTIMALE : On cherche d'abord le fichier record
+    if os.path.exists(chemin_best):
+        print("Chargement du meilleur modèle historique (csrnet_best.pth) !")
+        model.load_state_dict(torch.load(chemin_best, map_location=device))
         
-    dernier_modele = max(fichiers_modeles, key=lambda f: int(re.search(r'epoch_(\d+)', f).group(1)))
-    model.load_state_dict(torch.load(dernier_modele, map_location=device))
+    # SÉCURITÉ : Si on ne le trouve pas, on prend l'époque la plus grande
+    else:
+        fichiers_modeles = glob.glob('models/csrnet_epoch_*.pth')
+        if not fichiers_modeles:
+            print(" Aucun modèle trouvé dans le dossier 'models/'.")
+            return
+            
+        dernier_modele = max(fichiers_modeles, key=lambda f: int(re.search(r'epoch_(\d+)', f).group(1)))
+        model.load_state_dict(torch.load(dernier_modele, map_location=device))
+        print(f"🔄 Fichier 'best' introuvable, chargement du dernier point : {dernier_modele}")
     
     model.eval() 
-    print(f"🧠 Modèle chargé ({dernier_modele}) et verrouillé en mode Inférence.")
+    print(" Modèle verrouillé en mode Inférence.")
 
     # --- 3. SÉLECTION D'UNE IMAGE INCONNUE (Test Data) ---
     # MISE À JOUR : Utilisation dynamique de la variable dataset_part (Part B par défaut)
@@ -36,17 +46,28 @@ def test_random_image(dataset_part='part_B_final'):
     
     images_dir = os.path.join(test_dir, 'images')
     if not os.path.exists(images_dir):
-        print(f"❌ Erreur : Le dossier {images_dir} n'existe pas. As-tu bien extrait la Part B ?")
+        print(f" Erreur : Le dossier {images_dir} n'existe pas. As-tu bien extrait la Part B ?")
         return
 
     img_paths = [os.path.join(images_dir, f) for f in os.listdir(images_dir) if f.endswith('.jpg')]
     img_path = random.choice(img_paths)
+    # --------------------------
+    # On force l'image IMG_149.jpg au lieu du hasard
+    #nom_image_cible = 'IMG_149.jpg' 
+    #img_path = os.path.join(images_dir, nom_image_cible)
+    
+    # Sécurité si tu te trompes de nom
+    #if not os.path.exists(img_path):
+        #print(f" L'image {nom_image_cible} est introuvable !")
+        #return
+    # --------------------------
+
     nom_image = os.path.basename(img_path)
     
     # Correction robuste du chemin du corrigé
     h5_path = img_path.replace('.jpg', '.h5') 
 
-    print(f"\n📸 Test sur l'image inédite : {nom_image} (Dataset : {dataset_part})")
+    print(f"\n Test sur l'image inédite : {nom_image} (Dataset : {dataset_part})")
 
     # --- 4. PRÉPARATION DE L'IMAGE ---
     img_or = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
@@ -68,9 +89,9 @@ def test_random_image(dataset_part='part_B_final'):
         gt_map = hf['density'][:]
     compte_reel = np.sum(gt_map)
 
-    print(f"🎯 Vérité terrain (Humain) : {compte_reel:.0f} personnes")
-    print(f"🤖 Prédiction de l'IA      : {compte_ia:.0f} personnes")
-    print(f"📉 Marge d'erreur absolue  : {abs(compte_reel - compte_ia):.0f} personnes")
+    print(f" Vérité terrain (Humain) : {compte_reel:.0f} personnes")
+    print(f" Prédiction de l'IA      : {compte_ia:.0f} personnes")
+    print(f" Marge d'erreur absolue  : {abs(compte_reel - compte_ia):.0f} personnes")
 
     # --- 7. VISUALISATION DES RÉSULTATS ---
     plt.figure(figsize=(18, 6))

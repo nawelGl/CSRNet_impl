@@ -6,7 +6,6 @@ class CSRNet(nn.Module):
     def __init__(self):
         super(CSRNet, self).__init__()
         
-        # Architecture définie par le papier de recherche original
         # 'M' = MaxPooling (réduction de taille de l'image)
         # Nombres = Nombre de filtres (canaux)
         self.frontend_feat = [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512]

@@ -1,0 +1,4 @@
+# Contraintes: CPU=2.0 cores, RAM=2048MB
+name,mae,rmse,avg_ms,p50_ms,p95_ms,fps,peak_mem_mb
+ONNX FP32,9.11,15.94,35930.02,41371.41,42277.86,0.03,996.88
+ONNX INT8 (Static),9.20,16.02,1949.25,1915.72,2108.40,0.51,996.88
